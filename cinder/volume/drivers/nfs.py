@@ -101,7 +101,6 @@ class RemoteFsDriver(driver.VolumeDriver):
         :param volume: volume reference
         """
         self._ensure_shares_mounted()
-
         volume['provider_location'] = self._find_share(volume['size'])
 
         LOG.info(_('casted to %s') % volume['provider_location'])

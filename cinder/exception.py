@@ -503,6 +503,18 @@ class GlusterfsNoSuitableShareFound(NotFound):
     message = _("There is no share which can host %(volume_size)sG")
 
 
+class SmbfsException(CinderException):
+    message = _("Unknown SMBFS exception")
+
+
+class SmbfsNoSharesMounted(NotFound):
+    message = _("No mounted SMBFS shares found")
+
+
+class SmbfsNoSuitableShareFound(NotFound):
+    message = _("There is no share which can host %(volume_size)sG")
+
+
 class GlanceMetadataExists(Invalid):
     message = _("Glance metadata cannot be updated, key %(key)s"
                 " exists for volume id %(volume_id)s")

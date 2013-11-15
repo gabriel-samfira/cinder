@@ -40,6 +40,12 @@ class RemoteFsClient(object):
                 raise exception.InvalidParameterValue(
                     err=_('nfs_mount_point_base required'))
             self._mount_options = kwargs.get('nfs_mount_options', None)
+        elif mount_type == "smbfs":
+            self._mount_base = kwargs.get('smbfs_mount_point_base', None)
+            if not self._mount_base:
+                raise exception.InvalidParameterValue(
+                    err=_('smbfs_mount_point_base required'))
+            self._mount_options = kwargs.get('smbfs_mount_options', None)
         elif mount_type == "glusterfs":
             self._mount_base = kwargs.get('glusterfs_mount_point_base', None)
             if not self._mount_base:

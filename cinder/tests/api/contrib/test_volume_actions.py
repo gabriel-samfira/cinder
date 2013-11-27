@@ -78,6 +78,21 @@ class VolumeActionsTest(test.TestCase):
         res = req.get_response(fakes.wsgi_app())
         self.assertEqual(res.status_int, 200)
 
+    def test_initialize_connection_without_connector(self):
+        def fake_initialize_connection(*args, **kwargs):
+            return {}
+        self.stubs.Set(volume.API, 'initialize_connection',
+                       fake_initialize_connection)
+
+        body = {'os-initialize_connection': {}}
+        req = webob.Request.blank('/v2/fake/volumes/1/action')
+        req.method = "POST"
+        req.body = jsonutils.dumps(body)
+        req.headers["content-type"] = "application/json"
+
+        res = req.get_response(fakes.wsgi_app())
+        self.assertEqual(res.status_int, 400)
+
     def test_terminate_connection(self):
         def fake_terminate_connection(*args, **kwargs):
             return {}
@@ -92,6 +107,21 @@ class VolumeActionsTest(test.TestCase):
 
         res = req.get_response(fakes.wsgi_app())
         self.assertEqual(res.status_int, 202)
+
+    def test_terminate_connection_without_connector(self):
+        def fake_terminate_connection(*args, **kwargs):
+            return {}
+        self.stubs.Set(volume.API, 'terminate_connection',
+                       fake_terminate_connection)
+
+        body = {'os-terminate_connection': {}}
+        req = webob.Request.blank('/v2/fake/volumes/1/action')
+        req.method = "POST"
+        req.body = jsonutils.dumps(body)
+        req.headers["content-type"] = "application/json"
+
+        res = req.get_response(fakes.wsgi_app())
+        self.assertEqual(res.status_int, 400)
 
     def test_attach_to_instance(self):
         body = {'os-attach': {'instance_uuid': 'fake',
@@ -211,6 +241,8 @@ class VolumeActionsTest(test.TestCase):
 
         def make_update_readonly_flag_test(self, readonly, return_code):
             body = {"os-update_readonly_flag": {"readonly": readonly}}
+            if readonly is None:
+                body = {"os-update_readonly_flag": {}}
             req = webob.Request.blank('/v2/fake/volumes/1/action')
             req.method = "POST"
             req.body = jsonutils.dumps(body)
@@ -224,6 +256,7 @@ class VolumeActionsTest(test.TestCase):
         make_update_readonly_flag_test(self, 'false', 202)
         make_update_readonly_flag_test(self, 'tt', 400)
         make_update_readonly_flag_test(self, 11, 400)
+        make_update_readonly_flag_test(self, None, 400)
 
 
 def stub_volume_get(self, context, volume_id):

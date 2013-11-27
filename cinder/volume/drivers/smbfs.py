@@ -168,7 +168,7 @@ class SmbfsDriver(nfs.RemoteFsDriver):
         self._ensure_share_mounted(volume['provider_location'])
         mounted_path = self.local_path(volume)
         if volume['volume_type']:
-            if volume['volume_type']['name'] in ('vpc', 'vhd', 'vhdx'):
+            if volume['volume_type']['name'] in ('vhd',):
                 mounted_path = self.local_path(volume, is_vhd=True)
 
         self._execute('rm', '-f', mounted_path, run_as_root=True)

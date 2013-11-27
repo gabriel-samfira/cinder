@@ -91,7 +91,7 @@ class SmbfsDriver(nfs.RemoteFsDriver):
                        'smbfs_mount_options',
                        CONF.smbfs_mount_options)
         self._remotefsclient = remotefs.RemoteFsClient(
-            'smbfs', root_helper, execute=execute,
+            'cifs', root_helper, execute=execute,
             smbfs_mount_point_base=base,
             smbfs_mount_options=opts)
         self.img_suffix = None
@@ -132,28 +132,8 @@ class SmbfsDriver(nfs.RemoteFsDriver):
             raise exception.SmbfsException(msg)
 
         self.shares = {}  # address : options
-
-        # Check if mount.smbfs is installed
-        try:
-            self._execute(
-                'mount.smbfs', check_exit_code=False, run_as_root=True)
-        except OSError as exc:
-            if exc.errno == errno.ENOENT:
-                raise exception.SmbfsException('mount.smbfs is not installed')
-            else:
-                raise exc
-
-    def local_path(self, volume, is_vhd=False):
-        """Get volume path (mounted locally fs path) for given volume
-        :param volume: volume reference
-
-        """
-        volume_name = volume['name']
-        if is_vhd:
-            volume_name = "%s.vhd" % volume['name']
-        share = volume['provider_location']
-        return os.path.join(self._get_mount_point_for_share(share),
-                            volume_name)
+        self._ensure_shares_mounted()
+        # mount.smbfs is not needed. CIFS support is in the kernel
 
     def delete_volume(self, volume):
         """Deletes a logical volume. Hyper-V cares about the extension...
@@ -197,7 +177,6 @@ class SmbfsDriver(nfs.RemoteFsDriver):
             raise exception.InvalidVolume(reason=msg)
         if volume['volume_type']:
             if volume['volume_type']['name'] in ('vpc', 'vhd', 'vhdx'):
-                volume_path = self.local_path(volume, is_vhd=True)
                 self._create_vpc_file(volume_path, volume_size)
             else:
                 raise SmbfsException("Invalid volume type")
@@ -215,6 +194,8 @@ class SmbfsDriver(nfs.RemoteFsDriver):
 
     def _ensure_share_mounted(self, smbfs_share):
         mnt_flags = []
+        LOG.debug(">>>>%r" % self.shares)
+        LOG.debug(">>>>%r" % smbfs_share)
         if self.shares.get(smbfs_share) is not None:
             mnt_flags = self.shares[smbfs_share].split()
         self._remotefsclient.mount(smbfs_share, mnt_flags)

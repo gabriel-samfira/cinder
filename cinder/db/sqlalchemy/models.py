@@ -32,10 +32,12 @@ from oslo.config import cfg
 
 from cinder.openstack.common.db.sqlalchemy import models
 from cinder.openstack.common import timeutils
+from cinder.openstack.common import log as logging
 
 
 CONF = cfg.CONF
 BASE = declarative_base()
+LOG = logging.getLogger(__name__)
 
 
 class CinderBase(models.TimestampMixin,
@@ -94,6 +96,11 @@ class Volume(BASE, CinderBase):
 
     @property
     def name(self):
+        if self.volume_type_id:
+            if self.volume_type.name in ('vhd', 'vhdx', 'vpc'):
+                # Hyper-V cares about extensions...
+                name = CONF.volume_name_template % self.name_id
+                return "%s.vhd" % name
         return CONF.volume_name_template % self.name_id
 
     ec2_id = Column(Integer)

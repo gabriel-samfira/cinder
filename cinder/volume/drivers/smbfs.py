@@ -179,7 +179,7 @@ class SmbfsDriver(nfs.RemoteFsDriver):
             if volume['volume_type']['name'] in ('vpc', 'vhd', 'vhdx'):
                 self._create_vpc_file(volume_path, volume_size)
             else:
-                raise SmbfsException("Invalid volume type")
+                raise exception.SmbfsException("Invalid volume type")
         else:
             self.img_suffix = None
             if self.configuration.smbfs_qcow2_volumes:
@@ -194,8 +194,6 @@ class SmbfsDriver(nfs.RemoteFsDriver):
 
     def _ensure_share_mounted(self, smbfs_share):
         mnt_flags = []
-        LOG.debug(">>>>%r" % self.shares)
-        LOG.debug(">>>>%r" % smbfs_share)
         if self.shares.get(smbfs_share) is not None:
             mnt_flags = self.shares[smbfs_share].split()
         self._remotefsclient.mount(smbfs_share, mnt_flags)
